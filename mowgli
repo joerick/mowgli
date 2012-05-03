@@ -11,7 +11,7 @@ die () {
 }
 
 function_exists () {
-    type $1 2>/dev/null | grep -q 'shell function'
+    type $1 > /dev/null 2>&1
 }
 
 # parse the arguments
@@ -62,9 +62,12 @@ fi
 
 # create toy directory structure
 
+shopt -s nullglob
 previous_toy_versions=("${toy_output_path}/${toy_version}-*")
 
-number_of_previous_toy_versions=$(echo $previous_toy_versions | wc -w)
+echo  ${previous_toy_versions[@]}
+
+number_of_previous_toy_versions=$(echo ${previous_toy_versions[@]} | wc -w)
 
 toy_version_suffix=$(($number_of_previous_toy_versions + 1))
 
@@ -74,12 +77,16 @@ if [[ -e "$toy_version_dir" ]] ; then
 	die "Toy version directory $toy_version_dir already exists"
 fi
 
+mkdir -p "$toy_version_dir"
+
+toy_version_dir_absolute="$(cd "$toy_version_dir";pwd)"
+
 # build the contents
 
 (
 	cd "$project_dir"
 	
-	build "${initial_path}/${toy_version_dir}"
+	build "$toy_version_dir_absolute"
 )
 
 if [[ $? != 0 ]] ; then
