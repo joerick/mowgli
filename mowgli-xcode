@@ -5,7 +5,7 @@ guess_version () {
 }
 
 build () {
-	xcodebuild install DSTROOT="$1"
+	xcodebuild install DSTROOT="$1" ${XCODEBUILD_OPTS}
 }
 
 . $(dirname $0)/mowgli
