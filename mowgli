@@ -62,10 +62,9 @@ fi
 
 # create toy directory structure
 
+# set option nullglob means if a glob is unsuccessful, nothing is output
 shopt -s nullglob
 previous_toy_versions=("${toy_output_path}/${toy_version}-*")
-
-echo  ${previous_toy_versions[@]}
 
 number_of_previous_toy_versions=$(echo ${previous_toy_versions[@]} | wc -w)
 
@@ -82,7 +81,6 @@ mkdir -p "$toy_version_dir"
 toy_version_dir_absolute="$(cd "$toy_version_dir";pwd)"
 
 # build the contents
-
 (
 	cd "$project_dir"
 	
@@ -95,7 +93,6 @@ if [[ $? != 0 ]] ; then
 fi
 
 # make the contents list
-
 (
 	cd "$toy_version_dir"
 	
@@ -103,7 +100,6 @@ fi
 )
 
 # make the .toybox directory
-
 (
 	cd "$toy_version_dir"
 	
@@ -114,7 +110,6 @@ fi
 )
 
 # update latest link
-
 (
 	cd "${toy_output_path}"
 	
