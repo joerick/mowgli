@@ -62,7 +62,10 @@ fi
 
 # create toy directory structure
 
-number_of_previous_toy_versions=$(ls -1 "$toy_output_path" 2>/dev/null | wc -l)
+previous_toy_versions=("${toy_output_path}/${toy_version}-*")
+
+number_of_previous_toy_versions=$(echo $previous_toy_versions | wc -w)
+
 toy_version_suffix=$(($number_of_previous_toy_versions + 1))
 
 toy_version_dir="${toy_output_path}/${toy_version}-${toy_version_suffix}"
