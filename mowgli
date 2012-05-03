@@ -1,0 +1,112 @@
+#!/bin/sh
+
+usage () {
+	echo "usage: $(basename $0) [-v toy-version] [-p project-directory] toy-output-path"
+	exit 1
+}
+
+die () {
+	echo "Error: $1"
+	exit 2
+}
+
+function_exists () {
+    type $1 2>/dev/null | grep -q 'shell function'
+}
+
+# parse the arguments
+
+if [[ $# = 0 ]]; then usage; fi
+
+while getopts :v:p: OPTIONS ; do
+	case $OPTIONS in
+		v)
+			toy_version="$OPTARG"
+			;;
+		p)
+			project_dir="$OPTARG"
+			;;
+		*)
+			usage
+	esac
+done
+
+# remove parsed arguments from the list
+shift $((OPTIND-1))
+
+if [[ ! $# = 1 ]]; then usage; fi
+
+toy_output_path=$1
+
+# fill in missing arguments and validate
+
+initial_path=$(pwd)
+
+if [[ ! -n "${project_dir}" ]] ; then
+	project_dir="."
+fi
+
+if [[ ! -e "$project_dir" ]] ; then
+	die "Project directory does not exist at $project_dir"
+fi
+
+if [[ ! -n "${toy_version}" ]] ; then
+	if function_exists guess_version; then
+		toy_version=$(cd "$project_dir"; guess_version)
+	fi
+	
+	if [[ ! -n "${toy_version}" ]] ; then
+		die "Please specify a version using the -v flag"
+	fi
+fi
+
+# create toy directory structure
+
+number_of_previous_toy_versions=$(ls -1 "$toy_output_path" 2>/dev/null | wc -l)
+toy_version_suffix=$(($number_of_previous_toy_versions + 1))
+
+toy_version_dir="${toy_output_path}/${toy_version}-${toy_version_suffix}"
+
+if [[ -e "$toy_version_dir" ]] ; then
+	die "Toy version directory $toy_version_dir already exists"
+fi
+
+# build the contents
+
+(
+	cd "$project_dir"
+	
+	build "${initial_path}/${toy_version_dir}"
+)
+
+if [[ $? != 0 ]] ; then
+	rm -rf "${initial_path}/${toy_version_dir}"
+	die "Build command failed"
+fi
+
+# make the contents list
+
+(
+	cd "$toy_version_dir"
+	
+	find . -not -type d -or -empty > contents
+)
+
+# make the .toybox directory
+
+(
+	cd "$toy_version_dir"
+	
+	mkdir -p .toybox
+	
+	cp "/usr/local/share/mowgli/toybox" .toybox/toybox
+	cp "/usr/local/share/mowgli/toybox.conf" .toybox/toybox.conf
+)
+
+# update latest link
+
+(
+	cd "${toy_output_path}"
+	
+	ln -sfn "$(basename "$toy_version_dir")" "latest"
+)

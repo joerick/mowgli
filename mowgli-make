@@ -1,0 +1,7 @@
+#!/bin/sh
+
+build () {
+	make DESTDIR="$1" install
+}
+
+. $(dirname $0)/mowgli

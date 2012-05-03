@@ -1,0 +1,85 @@
+#!/bin/sh
+
+usage() {
+    echo "usage: `basename $0` [-i toy ... | -u toy ...] ..."
+    exit 1
+}
+
+start_toybox_install() (
+    t="$1/.toybox/toybox.conf"
+
+    if [ ! -f $t ]; then
+        echo "uh - $1 - no toybox.conf"
+        echo "no - $1 - not installed"
+        exit 2
+    fi
+
+    (. $t && cd -P "$1" && toybox_install "$1")
+
+    r=$?
+
+    if [ $r != 0 ]; then
+        echo "no - $1 - not installed"
+        exit $r
+    fi
+
+    echo "ok - $1 - installed"
+)
+
+start_toybox_uninstall() (
+    t="$1/.toybox/toybox.conf"
+
+    if [ ! -f $t ]; then
+        echo "uh - $1 - no toybox.conf"
+        echo "no - $1 - not uninstalled"
+        exit 3
+    fi
+
+    (. $t && cd -P "$1" && toybox_uninstall "$1")
+
+    r=$?
+
+    if [ $r != 0 ]; then
+        echo "no - $1 - not uninstalled"
+        exit $r
+    fi
+
+    echo "ok - $1 - uninstalled"
+)
+
+start() {
+    if [ $# = 0 ]; then usage; fi
+
+    s=0
+
+    for a in "$@"; do
+        shift
+        case "$a" in
+            -i | -u)
+                if [ $# = 0 ] ||
+                   [ $s = 1 ]; then
+                    usage
+                fi
+
+                s=1
+
+                m=$a
+                ;;
+            *)
+                s=0
+
+                case $m in
+                    -i)
+                        start_toybox_install "$a" || exit $?
+                        ;;
+                    -u)
+                        start_toybox_uninstall "$a" || exit $?
+                        ;;
+                    *)
+                        usage
+                esac
+        esac
+    done
+}
+
+start "$@" 2> /dev/null
