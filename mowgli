@@ -95,8 +95,10 @@ fi
 # make the contents list
 (
 	cd "$toy_version_dir"
-	
-	find . -not -type d -or -empty -and -not -path "./contents" > contents
+
+	tmp_contents_file=$(mktemp -t contents)
+	find . -not -type d -or -empty > "$tmp_contents_file"
+	cp "$tmp_contents_file" contents
 )
 
 # make the .toybox directory
