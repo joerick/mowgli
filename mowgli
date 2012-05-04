@@ -96,7 +96,7 @@ fi
 (
 	cd "$toy_version_dir"
 	
-	find . -not -type d -or -empty > contents
+	find . -not -type d -or -empty -and -not -path "./contents" > contents
 )
 
 # make the .toybox directory
