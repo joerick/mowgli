@@ -5,6 +5,7 @@ guess_version () {
 }
 
 build () {
+	xcodebuild clean DSTROOT="$1" ${XCODEBUILD_OPTS}
 	xcodebuild install DSTROOT="$1" ${XCODEBUILD_OPTS}
 }
 
