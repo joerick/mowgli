@@ -99,6 +99,7 @@ fi
 	tmp_contents_file=$(mktemp -t contents)
 	find . -not -type d -or -empty > "$tmp_contents_file"
 	cp "$tmp_contents_file" contents
+	chmod 755 contents
 )
 
 # make the .toybox directory
