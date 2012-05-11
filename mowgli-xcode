@@ -7,6 +7,10 @@ guess_version () {
 build () {
 	xcodebuild clean DSTROOT="$1" ${XCODEBUILD_OPTS}
 	xcodebuild install DSTROOT="$1" ${XCODEBUILD_OPTS}
+	
+	# clean up temporary build products
+	cd "$1"
+	rm -rf tmp
 }
 
 . $(dirname $0)/mowgli
