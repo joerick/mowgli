@@ -6,11 +6,14 @@ usage() {
 }
 
 start_toybox_install() (
+    echo $1
+    echo "-----> installing"
+
     t="$1/.toybox/toybox.conf"
 
-    if [ ! -f $t ]; then
-        echo "uh - $1 - no toybox.conf"
-        echo "no - $1 - not installed"
+    if [[ ! -f $t ]]; then
+        echo "-----> no toybox.conf"
+        echo "-----> not installed"
         exit 2
     fi
 
@@ -18,20 +21,23 @@ start_toybox_install() (
 
     r=$?
 
-    if [ $r != 0 ]; then
-        echo "no - $1 - not installed"
+    if [[ $r != 0 ]]; then
+        echo "-----> not installed"
         exit $r
     fi
 
-    echo "ok - $1 - installed"
+    echo "-----> installed"
 )
 
 start_toybox_uninstall() (
+    echo $1
+    echo "-----> uninstalling"
+
     t="$1/.toybox/toybox.conf"
 
-    if [ ! -f $t ]; then
-        echo "uh - $1 - no toybox.conf"
-        echo "no - $1 - not uninstalled"
+    if [[ ! -f $t ]]; then
+        echo "-----> no toybox.conf"
+        echo "-----> not uninstalled"
         exit 3
     fi
 
@@ -39,16 +45,16 @@ start_toybox_uninstall() (
 
     r=$?
 
-    if [ $r != 0 ]; then
-        echo "no - $1 - not uninstalled"
+    if [[ $r != 0 ]]; then
+        echo "-----> not uninstalled"
         exit $r
     fi
 
-    echo "ok - $1 - uninstalled"
+    echo "-----> uninstalled"
 )
 
 start() {
-    if [ $# = 0 ]; then usage; fi
+    if [[ $# = 0 ]]; then usage; fi
 
     s=0
 
@@ -56,8 +62,8 @@ start() {
         shift
         case "$a" in
             -i | -u)
-                if [ $# = 0 ] ||
-                   [ $s = 1 ]; then
+                if [[ $# = 0 ]] ||
+                   [[ $s = 1 ]]; then
                     usage
                 fi
 
@@ -78,6 +84,8 @@ start() {
                     *)
                         usage
                 esac
+
+                if [[ $# != 0 ]]; then echo; fi
         esac
     done
 }
