@@ -7,50 +7,28 @@ usage() {
 
 start_toybox_install() (
     echo $1
-    echo "-----> installing"
 
     t="$1/.toybox/toybox.conf"
 
-    if [[ ! -f $t ]]; then
-        echo "-----> no toybox.conf"
-        echo "-----> not installed"
+    if [[ ! -f "$t" ]]; then
+        echo "-----> not a toy"
         exit 2
     fi
 
-    (. $t && cd -P "$1" && toybox_install "$1")
-
-    r=$?
-
-    if [[ $r != 0 ]]; then
-        echo "-----> not installed"
-        exit $r
-    fi
-
-    echo "-----> installed"
+    (. "$t" && cd -P "$1" && toybox_install "$1")
 )
 
 start_toybox_uninstall() (
     echo $1
-    echo "-----> uninstalling"
 
     t="$1/.toybox/toybox.conf"
 
-    if [[ ! -f $t ]]; then
-        echo "-----> no toybox.conf"
-        echo "-----> not uninstalled"
+    if [[ ! -f "$t" ]]; then
+        echo "-----> not a toy"
         exit 3
     fi
 
-    (. $t && cd -P "$1" && toybox_uninstall "$1")
-
-    r=$?
-
-    if [[ $r != 0 ]]; then
-        echo "-----> not uninstalled"
-        exit $r
-    fi
-
-    echo "-----> uninstalled"
+    (. "$t" && cd -P "$1" && toybox_uninstall "$1")
 )
 
 start() {
