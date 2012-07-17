@@ -64,13 +64,13 @@ fi
 
 # set option nullglob means if a glob is unsuccessful, nothing is output
 shopt -s nullglob
-previous_toy_versions=("${toy_output_path}/${toy_version}-*")
+previous_toy_versions=("${toy_output_path}/versions/${toy_version}-*")
 
 number_of_previous_toy_versions=$(echo ${previous_toy_versions[@]} | wc -w)
 
 toy_version_suffix=$(($number_of_previous_toy_versions + 1))
 
-toy_version_dir="${toy_output_path}/${toy_version}-${toy_version_suffix}"
+toy_version_dir="${toy_output_path}/versions/${toy_version}-${toy_version_suffix}"
 
 if [[ -e "$toy_version_dir" ]] ; then
 	die "Toy version directory $toy_version_dir already exists"
@@ -84,23 +84,13 @@ toy_version_dir_absolute="$(cd "$toy_version_dir";pwd)"
 (
 	cd "$project_dir"
 	
-	build "$toy_version_dir_absolute"
+	build "$toy_version_dir_absolute/contents"
 )
 
 if [[ $? != 0 ]] ; then
 	rm -rf "${initial_path}/${toy_version_dir}"
 	die "Build command failed"
 fi
-
-# make the contents list
-(
-	cd "$toy_version_dir"
-
-	tmp_contents_file=$(mktemp -t contents)
-	find . -not -type d -or -empty > "$tmp_contents_file"
-	cp "$tmp_contents_file" contents
-	chmod 755 contents
-)
 
 # make the .toybox directory
 (
@@ -112,9 +102,19 @@ fi
 	cp "/usr/local/share/mowgli/toybox.conf" .toybox/toybox.conf
 )
 
+# make the contents list
+(
+	cd "$toy_version_dir/contents"
+
+	tmp_contents_file=$(mktemp -t contents)
+	find . -not -type d -or -empty > "$tmp_contents_file"
+	cp "$tmp_contents_file" ../.toybox/TOC
+	chmod 755 ../.toybox/TOC
+)
+
 # update latest link
 (
-	cd "${toy_output_path}"
+	cd "${toy_output_path}/versions"
 	
 	ln -sfn "$(basename "$toy_version_dir")" "latest"
 )
