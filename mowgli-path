@@ -1,7 +1,0 @@
-#!/bin/sh
-
-build () {
-	cp -pR * "$1"
-}
-
-. $(dirname $0)/mowgli
