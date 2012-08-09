@@ -1,0 +1,34 @@
+#!/bin/sh
+
+uninstall_content() {
+    rm -rf "/$1"
+}
+
+uninstall_package() {
+    while read c; do
+        uninstall_content "$c" || return 1
+    done < .toybox/TOC
+}
+
+uninstall_receipt() {
+    rm "$TOYBOX/receipts/$1"
+}
+
+echo "$1 $2-$3"
+echo "-----> uninstalling"
+
+uninstall_package "$@"
+
+if [[ $? != 0 ]]; then
+    echo "-----> couldn't uninstall package"
+    echo "-----> not uninstalled"
+    exit 5
+fi
+
+uninstall_receipt "$@"
+
+if [[ $? != 0 ]]; then
+    echo "-----> couldn't uninstall receipt"
+fi
+
+echo "-----> uninstalled"

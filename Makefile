@@ -1,13 +1,11 @@
 prefix=$(DESTDIR)/usr/local
 
-install: mowgli
+install:
 	mkdir -p $(prefix)/bin
 	install -m 0755 mowgli $(prefix)/bin
-	install -m 0755 mowgli-xcode $(prefix)/bin
-	install -m 0755 mowgli-make $(prefix)/bin
-	install -m 0755 mowgli-path $(prefix)/bin
 	mkdir -p $(prefix)/share/mowgli
-	install -m 0755 toybox $(prefix)/share/mowgli
-	install -m 0755 toybox.conf $(prefix)/share/mowgli
+	cp -R package.toybox $(prefix)/share/mowgli
+	cp -R version.toybox $(prefix)/share/mowgli
+	cp -R release.toybox $(prefix)/share/mowgli
 
 .PHONY: install

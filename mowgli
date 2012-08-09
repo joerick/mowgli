@@ -1,120 +1,89 @@
 #!/bin/sh
 
+support_dir=${MOWGLI_SUPPORT_DIR:-"/usr/local/share/mowgli"}
+
 usage () {
-	echo "usage: $(basename $0) [-v toy-version] [-p project-directory] toy-output-path"
+	echo "" 1>&2
+	echo "Usage: $(basename $0) --version <version> --release <release> <contents> <output>" 1>&2
+	echo "" 1>&2
+	echo "\tBuilds a toy with the specified version/release using a build root at" 1>&2
+	echo "\tcontents." 1>&2
 	exit 1
-}
-
-die () {
-	echo "Error: $1"
-	exit 2
-}
-
-function_exists () {
-    type $1 > /dev/null 2>&1
 }
 
 # parse the arguments
 
-if [[ $# = 0 ]]; then usage; fi
-
-while getopts :v:p: OPTIONS ; do
-	case $OPTIONS in
-		v)
-			toy_version="$OPTARG"
-			;;
-		p)
-			project_dir="$OPTARG"
-			;;
-		*)
-			usage
-	esac
-done
-
-# remove parsed arguments from the list
-shift $((OPTIND-1))
-
-if [[ ! $# = 1 ]]; then usage; fi
-
-toy_output_path=$1
-
-# fill in missing arguments and validate
-
-initial_path=$(pwd)
-
-if [[ ! -n "${project_dir}" ]] ; then
-	project_dir="."
-fi
-
-if [[ ! -e "$project_dir" ]] ; then
-	die "Project directory does not exist at $project_dir"
-fi
-
-if [[ ! -n "${toy_version}" ]] ; then
-	if function_exists guess_version; then
-		toy_version=$(cd "$project_dir"; guess_version)
+parse_arguments () {
+	while [ -n "$1" ]; do
+		case $1 in
+			"--version")
+				shift
+				version=$1
+				;;
+			"--release")
+				shift
+				release=$1
+				;;
+			*)
+				break
+		esac
+		shift
+	done
+	
+	if [ -z $version ] ; then
+		echo "Please specify a version using the --version argument" 1>&2
+		usage
 	fi
 	
-	if [[ ! -n "${toy_version}" ]] ; then
-		die "Please specify a version using the -v flag"
+	if [ -z $release ] ; then
+		echo "Please specify a release identifier using the --release argument" 1>&2
+		usage
 	fi
-fi
-
-# create toy directory structure
-
-# set option nullglob means if a glob is unsuccessful, nothing is output
-shopt -s nullglob
-previous_toy_versions=("${toy_output_path}/versions/${toy_version}-*")
-
-number_of_previous_toy_versions=$(echo ${previous_toy_versions[@]} | wc -w)
-
-toy_version_suffix=$(($number_of_previous_toy_versions + 1))
-
-toy_version_dir="${toy_output_path}/versions/${toy_version}-${toy_version_suffix}"
-
-if [[ -e "$toy_version_dir" ]] ; then
-	die "Toy version directory $toy_version_dir already exists"
-fi
-
-mkdir -p "$toy_version_dir"
-
-toy_version_dir_absolute="$(cd "$toy_version_dir";pwd)"
-
-# build the contents
-(
-	cd "$project_dir"
 	
-	build "$toy_version_dir_absolute/contents"
-)
-
-if [[ $? != 0 ]] ; then
-	rm -rf "${initial_path}/${toy_version_dir}"
-	die "Build command failed"
-fi
-
-# make the .toybox directory
-(
-	cd "$toy_version_dir"
+	contents=$1
+	shift
+	output=$1
 	
-	mkdir -p .toybox
+	if [ -z "$contents" ] ; then
+		echo "Please specify the contents directory" 1>&2
+		usage
+	fi
 	
-	cp "/usr/local/share/mowgli/toybox" .toybox/toybox
-	cp "/usr/local/share/mowgli/toybox.conf" .toybox/toybox.conf
-)
+	if [ -z "$output" ] ; then
+		echo "Please specify the output path" 1>&2
+		usage
+	fi
+}
 
-# make the contents list
-(
-	cd "$toy_version_dir/contents"
+toc_for_contents () {
+	(
+		cd $1
+		find . -not -type d -or -empty
+	)
+}
 
-	tmp_contents_file=$(mktemp -t contents)
-	find . -not -type d -or -empty > "$tmp_contents_file"
-	cp "$tmp_contents_file" ../.toybox/TOC
-	chmod 755 ../.toybox/TOC
-)
-
-# update latest link
-(
-	cd "${toy_output_path}/versions"
+build_toy () {
+	version=$1
+	release=$2
+	contents=$3
+	output=$4
 	
-	ln -sfn "$(basename "$toy_version_dir")" "latest"
-)
+	set -e
+	
+	mkdir -p "$output/versions/$version/releases/$release/contents"
+	
+	cp -a "$contents/" "$output/versions/$version/releases/$release/contents/"
+	
+	cp -R "$support_dir/package.toybox/" "$output/.toybox/"
+	cp -R "$support_dir/version.toybox/" "$output/versions/$version/.toybox/"
+	cp -R "$support_dir/release.toybox/" "$output/versions/$version/releases/$release/.toybox/"
+		
+	toc=$(toc_for_contents "$output/versions/$version/releases/$release/contents/")
+	echo "$toc" > "$output/versions/$version/releases/$release/.toybox/TOC"
+	
+	set +e
+}
+
+parse_arguments $@
+
+build_toy "$version" "$release" "$contents" "$output"

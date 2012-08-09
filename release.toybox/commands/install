@@ -1,0 +1,35 @@
+#!/bin/sh
+
+install_content() {
+    mkdir -p "/$(dirname "$1")" &&
+      ln -snf "$(pwd)/contents/$1" "/$1"
+}
+
+install_package() {
+    while read c; do
+        install_content "$c" || return 1
+    done < .toybox/TOC
+}
+
+install_receipt() {
+    ln -sfn "$(pwd)" "$TOYBOX/receipts/$1"
+}
+
+echo "$1 $2-$3"
+echo "-----> installing"
+
+install_package "$@"
+
+if [[ $? != 0 ]]; then
+    echo "-----> couldn't install package"
+    echo "-----> not installed"
+    exit 4
+fi
+
+install_receipt "$@"
+
+if [[ $? != 0 ]]; then
+    echo "-----> couldn't install receipt"
+fi
+
+echo "-----> installed"

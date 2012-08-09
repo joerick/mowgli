@@ -1,0 +1,7 @@
+#!/bin/sh -e
+
+r="$(ls releases | tail -n 1)"
+
+cd "releases/$r" 
+
+.toybox/commands/uninstall "$@" "$r"
