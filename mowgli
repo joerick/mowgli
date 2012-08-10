@@ -72,7 +72,7 @@ build_toy () {
 	
 	mkdir -p "$output/versions/$version/releases/$release/contents"
 	
-	cp -a "$contents/" "$output/versions/$version/releases/$release/contents/"
+	rsync -a "$contents/" "$output/versions/$version/releases/$release/contents/"
 	
 	cp -R "$support_dir/package.toybox/" "$output/.toybox/"
 	cp -R "$support_dir/version.toybox/" "$output/versions/$version/.toybox/"
