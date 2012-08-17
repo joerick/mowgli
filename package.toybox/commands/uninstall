@@ -1,7 +1,0 @@
-#!/bin/sh -e
-
-v="$(ls versions | tail -n 1)"
-
-cd "versions/$v"
-
-.toybox/commands/uninstall "$@" "$v"

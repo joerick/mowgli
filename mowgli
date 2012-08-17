@@ -4,6 +4,7 @@ support_dir=${MOWGLI_SUPPORT_DIR:-"/usr/local/share/mowgli"}
 
 usage () {
 	echo "" 1>&2
+	echo "Mowgli 2.1" 1>&2
 	echo "Usage: $(basename $0) --version <version> --release <release> <contents> <output>" 1>&2
 	echo "" 1>&2
 	echo "\tBuilds a toy with the specified version/release using a build root at" 1>&2
@@ -72,10 +73,9 @@ build_toy () {
 	
 	mkdir -p "$output/versions/$version/releases/$release/contents"
 	
-	rsync -a "$contents/" "$output/versions/$version/releases/$release/contents/"
-	
-	cp -R "$support_dir/package.toybox/" "$output/.toybox/"
-	cp -R "$support_dir/version.toybox/" "$output/versions/$version/.toybox/"
+	# --super forces rsync to attempt to preserve ownership
+	rsync --archive --super "$contents/" "$output/versions/$version/releases/$release/contents/"
+
 	cp -R "$support_dir/release.toybox/" "$output/versions/$version/releases/$release/.toybox/"
 		
 	toc=$(toc_for_contents "$output/versions/$version/releases/$release/contents/")
