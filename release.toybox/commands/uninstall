@@ -1,34 +1,22 @@
 #!/bin/sh
 
-uninstall_content() {
+contents() {
+    grep '^[^#]' < .toybox/TOC
+}
+
+uninstall() {
     rm -rf "/$1"
 }
 
-uninstall_package() {
-    while read c; do
-        uninstall_content "$c" || return 1
-    done < .toybox/TOC
+uninstall_contents() {
+    contents | while read c; do
+        uninstall "$c" || return 1
+    done
 }
 
-uninstall_receipt() {
-    rm "$TOYBOX/receipts/$1"
-}
+uninstall_contents
 
-echo "$1 $2-$3"
-echo "-----> uninstalling"
-
-uninstall_package "$@"
-
-if [[ $? != 0 ]]; then
-    echo "-----> couldn't uninstall package"
-    echo "-----> not uninstalled"
-    exit 5
+if [ $? -ne 0 ]; then
+    echo "couldn't uninstall package"
+    exit 7
 fi
-
-uninstall_receipt "$@"
-
-if [[ $? != 0 ]]; then
-    echo "-----> couldn't uninstall receipt"
-fi
-
-echo "-----> uninstalled"
