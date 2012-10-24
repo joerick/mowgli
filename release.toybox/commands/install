@@ -1,35 +1,23 @@
 #!/bin/sh
 
-install_content() {
+contents() {
+    grep '^[^#]' < .toybox/TOC
+}
+
+install() {
     mkdir -p "/$(dirname "$1")" &&
       ln -snf "$(pwd)/contents/$1" "/$1"
 }
 
-install_package() {
-    while read c; do
-        install_content "$c" || return 1
-    done < .toybox/TOC
+install_contents() {
+    contents | while read c; do
+        install "$c" || return 1
+    done
 }
 
-install_receipt() {
-    ln -sfn "$(pwd)" "$TOYBOX/receipts/$1"
-}
+install_contents
 
-echo "$1 $2-$3"
-echo "-----> installing"
-
-install_package "$@"
-
-if [[ $? != 0 ]]; then
-    echo "-----> couldn't install package"
-    echo "-----> not installed"
-    exit 4
+if [ $? -ne 0 ]; then
+    echo "couldn't install package"
+    exit 6
 fi
-
-install_receipt "$@"
-
-if [[ $? != 0 ]]; then
-    echo "-----> couldn't install receipt"
-fi
-
-echo "-----> installed"
